@@ -24,7 +24,7 @@ router.post('/signin', async (req, res) => {
   
     try {
       // Attempt sign-in with Supabase
-      const { user, session, error } = await supabase.auth.signIn({ email, password });
+      const { user, session, error } = await supabase.auth.signInWithPassword({ email, password });
   
       if (error) {
         // Differentiate error types for better feedback
