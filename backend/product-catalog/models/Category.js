@@ -1,4 +1,7 @@
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(supabaseUrl, supabaseKey);
 class Category {
+
     static async findByNameOrDescription(search) {
       let query = supabase
         .from('Categories')
