@@ -69,7 +69,7 @@ exports.deleteProduct = async (req, res) => {
   };
   
 // Get filtered products
-exports.getProducts = async (req, res) => {
+/*exports.getProducts = async (req, res) => {
     try {
       // Extract query parameters
       const { category, minPrice, maxPrice } = req.query;
@@ -82,5 +82,5 @@ exports.getProducts = async (req, res) => {
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
-  };
+  }; */ 
   
