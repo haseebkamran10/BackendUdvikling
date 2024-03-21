@@ -1,4 +1,4 @@
-const Product = require('../models/Product');
+const Product = require('../models/Products');
 
 exports.createProduct = async (req, res) => {
   try {
@@ -11,13 +11,28 @@ exports.createProduct = async (req, res) => {
 
 // Get all products
 exports.getProducts = async (req, res) => {
-    try {
-      const products = await Product.findAll();
-      res.status(200).json(products);
-    } catch (error) {
-      res.status(400).json({ error: error.message });
+  try {
+    // Extract query parameters
+    const { category, minPrice, maxPrice, search } = req.query;
+
+    // Initialize filters object
+    const filters = { category, minPrice, maxPrice };
+
+    // Check if there is a search term
+    if (search) {
+      // Pass the search term to the model alongside other filters
+      filters.search = search;
     }
-  };
+
+    // Pass the filters to the model
+    const products = await Product.findFiltered(filters);
+
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
   
   // Get a single product by ID
   exports.getProductById = async (req, res) => {

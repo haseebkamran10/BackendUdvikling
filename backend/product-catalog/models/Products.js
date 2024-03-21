@@ -37,19 +37,23 @@ class Product {
     return data;
   }
   // Retrieve filtered products
-  static async findFiltered({ category, minPrice, maxPrice }) {
-    let query = supabase.from('Products').select('*');
+  static async findFiltered({ category, minPrice, maxPrice, search }) {
+    let query = supabase.from('Products').select(`
+      *,
+      Categories(name)
+    `);
 
     if (category) {
-      query = query.in('Categories', Array.isArray(category) ? category : [category]);
+      query = query.eq('category_id', category);
     }
-
     if (minPrice) {
       query = query.gte('price', minPrice);
     }
-
     if (maxPrice) {
       query = query.lte('price', maxPrice);
+    }
+    if (search) {
+      query = query.ilike('name', `%${search}%`).or(`description.ilike.%${search}%`);
     }
 
     const { data, error } = await query;
