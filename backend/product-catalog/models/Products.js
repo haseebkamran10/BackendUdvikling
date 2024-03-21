@@ -1,7 +1,5 @@
-const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-class Product {
+const supabase = require('../services/supabaseClient');
+class Products {
   // Create a new product
   static async create(product) {
     const { data, error } = await supabase.from('Products').insert([product]);
@@ -64,4 +62,4 @@ class Product {
 
 }
 
-module.exports = Product;
+module.exports = Products;

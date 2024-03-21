@@ -1,7 +1,5 @@
-const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = require('../services/supabaseClient');
 class Category {
-
     static async findByNameOrDescription(search) {
       let query = supabase
         .from('Categories')
@@ -19,3 +17,5 @@ class Category {
     }
   }
   
+  
+module.exports = Category;
