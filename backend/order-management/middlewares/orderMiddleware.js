@@ -1,6 +1,5 @@
 // Handle authentication and validation.
 
-const express = require('express');
 const app = express();
 const orderRoutes = require ('/routes/orderRoutes'); // Importing order routes
 
