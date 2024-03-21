@@ -8,9 +8,10 @@ async function createOrder(req, res) {
     const { user_id, status, total_price } = req.body; // Assuming these are the body parameters
     try {
         const { data, error } = await supabase
-            .from('Orders')
-            .insert([{ user_id, status, total_price }]);
-        
+    .from('Orders')
+    .insert([{ user_id, status, total_price }])
+    .select();
+
         // Log the response data from Supabase for debugging
         console.log('Insert response data:', data);
 
