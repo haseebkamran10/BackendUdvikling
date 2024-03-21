@@ -1,4 +1,5 @@
-const supabase = require('../services/supabaseClient');
+
+const supabase = require('@supabase/supabase-js')
 class Products {
   // Create a new product
   static async create(product) {

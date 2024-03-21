@@ -1,4 +1,4 @@
-const supabase = require('../services/supabaseClient');
+import supabase from '../../user-auth/services/supabaseClient';
 class Category {
     static async findByNameOrDescription(search) {
       let query = supabase
