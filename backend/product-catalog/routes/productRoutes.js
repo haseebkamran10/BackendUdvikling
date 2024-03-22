@@ -3,11 +3,11 @@ const router = express.Router();
 const productController = require('../controllers/productController');
 const { validateProduct } = require('../middlewares/validateProduct');
 
-router.post('/products', validateProduct, productController.createProduct);
 router.get('/products', productController.getProducts);
 router.get('/products/:id', productController.getProductById);
-router.put('/products/:id', validateProduct, productController.updateProduct);
-router.delete('/products/:id', productController.deleteProduct);
-//router.get('/search', productController.getProducts);
+router.get('/products/:name',productController.getProductByName)
+router.get('/products/filter', productController.getProductsByFilter);
+//router.get('/search', productController.getProductByName);
+
 
 module.exports = router;

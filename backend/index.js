@@ -24,7 +24,7 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 
 // Register the product routes with the app
-app.use('/', productRoutes);
+app.use('/products', productRoutes);
 
 // Register the category routes with the app
 app.use('/categories', categoryRoutes);

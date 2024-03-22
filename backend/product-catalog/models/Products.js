@@ -1,12 +1,6 @@
 
 const supabase = require('@supabase/supabase-js')
 class Products {
-  // Create a new product
-  static async create(product) {
-    const { data, error } = await supabase.from('Products').insert([product]);
-    if (error) throw error;
-    return data;
-  }
 
   // Get all products
   static async findAll() {
@@ -21,44 +15,42 @@ class Products {
     if (error) throw error;
     return data;
   }
-
-  // Update a product by ID
-  static async updateById(id, updates) {
-    const { data, error } = await supabase.from('Products').update(updates).eq('id', id);
+  // Find a single product by name
+  static async findByName(name) {
+    const { data, error } = await supabase.from('Products').select('*').eq('name',name).single;
     if (error) throw error;
     return data;
   }
 
-  // Delete a product by ID
-  static async deleteById(id) {
-    const { data, error } = await supabase.from('Products').delete().eq('id', id);
-    if (error) throw error;
-    return data;
-  }
-  // Retrieve filtered products
-  static async findFiltered({ category, minPrice, maxPrice, search }) {
-    let query = supabase.from('Products').select(`
-      *,
-      Categories(name)
-    `);
 
-    if (category) {
-      query = query.eq('category_id', category);
-    }
-    if (minPrice) {
-      query = query.gte('price', minPrice);
-    }
-    if (maxPrice) {
-      query = query.lte('price', maxPrice);
-    }
-    if (search) {
-      query = query.ilike('name', `%${search}%`).or(`description.ilike.%${search}%`);
+// Retrieve filtered products
+static async filterProducts(filters) {
+  try {
+    let query = supabase.from('Products').select('*');
+
+    if (filters.category) {
+      query = query.eq('category_id', filters.category); // Access values from filters object
     }
 
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
+    if (filters.minPrice) {
+      query = query.gte('price', filters.minPrice); // Access values from filters object
+    }
+
+    if (filters.maxPrice) {
+      query = query.lte('price', filters.maxPrice); // Access values from filters object
+    }
+
+    const { data: products, error } = await query;
+    if (error) {
+      throw new Error('Error fetching filtered products:', error); // Throw a descriptive error
+    }
+
+    return products;
+  } catch (error) {
+    console.error('Error in filterProducts:', error);
+    throw error; // Re-throw the error for handling in calling function
   }
+}
   
 
 }

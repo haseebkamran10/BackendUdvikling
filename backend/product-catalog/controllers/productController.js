@@ -1,52 +1,20 @@
-const supabase = require('../services/supabaseClient.js');
 
-exports.createProduct = async (req, res) => {
-  try {
-    // Create product in Supabase directly
-    const { data, error } = await supabase
-      .from('Products')
-      .insert(req.body);
-
-    if (error) {
-      console.error('Error creating product:', error);
-      return res.status(400).json({ error: error.message });
-    }
-
-    res.status(201).json(data);
-  } catch (error) {
-    console.error('Unexpected error creating product:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
+const Products = require('../models/Products');
 
 exports.getProducts = async (req, res) => {
   try {
-    // Fetch products directly from Supabase
-    const { data: products, error } = await supabase
-      .from('Products')
-      .select('*');
-
-    if (error) {
-      console.error('Error fetching products:', error);
-      return res.status(500).json({ error: 'Failed to get products' });
-    }
-
+    // 1. Fetch all products initially
+    const products = await Products.findAll();
     res.status(200).json(products);
   } catch (error) {
     console.error('Unexpected error fetching products:', error);
-    res.standart(500).json({ error: 'Internal server error' }); // typo corrected from 'standart' to 'status'
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 exports.getProductById = async (req, res) => {
   try {
-    const productId = req.params.id;
-
-    // Fetch product by ID from Supabase
-    const { data: product, error } = await supabase
-      .from('Products')
-      .select('*')
-      .eq('id', productId);
+    const product = await Products.findById(req.params.id);
 
     if (error) {
       console.error('Error fetching product:', error);
@@ -64,57 +32,49 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-exports.updateProduct = async (req, res) => {
+exports.getProductByName = async (req, res) => {
   try {
-    const productId = req.params.id;
-    const productUpdates = req.body;
+    const productName = req.params.name; // Assuming product name is sent in params
 
-    // Update product in Supabase
-    const { data, error } = await supabase
-      .from('Products')
-      .update(productUpdates)
-      .eq('id', productId);
-
+    // Fetch product by name from Supabase
+    const product = await Products.findByName(productName)
     if (error) {
-      console.error('Error updating product:', error);
-      return res.status(400).json({ error: error.message });
+      console.error('Error fetching product:', error);
+      return res.status(500).json({ error: 'Failed to get product' });
     }
 
-    if (data.updatedCount === 1) {
-      // Product updated successfully
-      res.status(200).json({ message: 'Product successfully updated' });
+    if (product) {
+      res.status(200).json(product);
     } else {
-      res.status(400).json({ error: 'Failed to update product' });
+      res.status(404).json({ error: 'Product not found' });
     }
   } catch (error) {
-    console.error('Unexpected error updating product:', error);
+    console.error('Unexpected error fetching product:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
-
-exports.deleteProduct = async (req, res) => {
+exports.getProductsByFilter = async (req, res) => {
   try {
-    const productId = req.params.id;
-
-    // Delete product from Supabase
-    const { data, error } = await supabase
-      .from('Products')
-      .delete()
-      .eq('id', productId);
-
-    if (error) {
-      console.error('Error deleting product:', error);
-      return res.status(500).json({ error: 'Failed to delete product' });
+    // Extract filters from query parameters (adjust based on your implementation)
+    const filters = {};
+    if (req.query.category) {
+      filters.category = req.query.category;
     }
 
-    if (data.deletedCount === 1) {
-      // Product deleted successfully
-      res.status(200).json({ message: 'Product successfully deleted' });
-    } else {
-      res.status(400).json({ error: 'Failed to delete product' });
+    if (req.query.minPrice) {
+      filters.minPrice = parseFloat(req.query.minPrice);
     }
+
+    if (req.query.maxPrice) {
+      filters.maxPrice = parseFloat(req.query.maxPrice);
+    }
+
+    // Call filterProducts function with extracted filters
+    const filteredProducts = await productController.filterProducts(filters);
+
+    res.status(200).json(filteredProducts);
   } catch (error) {
-    console.error('Unexpected error deleting product:', error);
+    console.error('Error fetching filtered products:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
