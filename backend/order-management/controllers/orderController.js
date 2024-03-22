@@ -1,88 +1,64 @@
 // Make sure to require the Supabase client properly at the top of the file
-const supabase = require('../services/supabaseClient.js');
-const { Order, createOrderItems} = require('../models/orderModels'); // Import createOrderItems function and Order class
+const { createOrderItem } = require('../models/orderModels'); // Importing the createOrderItem
+const supabase = require('../services/supabaseClient');
+
+// Import only the Order class
+const { Order } = require('../models/orderModels');
 
 // Function to create a new order
 async function createOrder(req, res) {
     const { user_id, status, total_price, items } = req.body;
     try {
-        // Insert new order into Supabase's "orders" table
+        // Only insert the order data without the select
         const { data: orderData, error: orderError } = await supabase
             .from('Orders')
             .insert([{ user_id, status, total_price }])
-            .select();
-        
-        // Error handling for any issues with the insert operation for orders
+            .single();
+
         if (orderError) {
             console.error('Insert error:', orderError);
-            throw new Error(orderError.message);
+            return res.status(400).json({ error: orderError.message });
         }
 
-        // Check if order data is not null and has at least one item
-        if (orderData && orderData.length > 0) {
-            const newOrder = new Order(orderData[0].id, user_id, status, total_price, orderData[0].created_at);
+        // Create an instance of Order
+        const newOrder = new Order(orderData.id, user_id, status, total_price, orderData.created_at);
 
-            // Loop through each item and add it to the order
-            for (const item of items) {
-                // Create order item for each item in the order
-                await createOrderItems(newOrder.id, item.product_id, item.quantity, item.price);
-            }
+        // Create order items for each item in the items array
+        const orderItemsPromises = items.map(item =>
+            createOrderItem(orderData.id, item.product_id, item.quantity, item.price)
+        );
 
-            res.status(201).json(newOrder);
-        } else {
-            // Handle the case where order data is null or empty
-            throw new Error('No data returned from insert operation for orders');
-        }
+        // Wait for all order items to be created
+        const orderItems = await Promise.all(orderItemsPromises);
+
+        res.status(201).json({ order: newOrder, orderItems });
     } catch (error) {
         console.error('Creation failed:', error);
         res.status(500).json({ error: error.message });
     }
 }
 
-
-// Function to create a new order item
-async function createOrderItems(order_id, product_id, quantity, price) {
-    try {
-        // Insert new order item into Supabase's "orderItems" table
-        const { data: orderItemsData, error: orderItemsError } = await supabase
-            .from('OrderItems')
-            .insert([{ order_id, product_id, quantity, price }])
-            .select();
-
-        // Error handling for any issues with the insert operation for order items
-        if (orderItemsError) {
-            console.error('Insert error:', orderItemsError);
-            throw new Error(orderItemsError.message);
-        }
-
-        // Check if order item data is not null and has at least one item
-        if (orderItemsData && orderItemsData.length > 0) {
-            // Optionally, you can return the newly created order item if needed
-            return orderItemsData[0];
-        } else {
-            // Handle the case where order item data is null or empty
-            throw new Error('No data returned from insert operation for order items');
-        }
-    } catch (error) {
-        // Log the error for debugging purposes
-        console.error('Creation failed:', error);
-        // If creation failed, throw the error
-        throw error;
-    }
-}
-
-// Function to get orders by user ID
 async function getOrderByUserId(req, res) {
+    const { user_id } = req.params;
     try {
-        const { user_id } = req.params;
-        //Static method from Order to fetch orders by user_id
-        const Orders = await Order.getOrderByUserId(user_id);
-        //Sending fetched orders as a json response
-        res.status(200).json(Orders); 
+        // Fetch orders by user ID from your model or database
+        const { data, error } = await supabase
+            .from('Orders')
+            .select('*')
+            .eq('user_id', user_id);
+        
+        if (error) {
+            throw error;
+        }
+
+        // Assuming you map your data to instances of the Order class
+        const orders = data.map(order => new Order(order.id, order.user_id, order.status, order.total_price, order.created_at));
+        res.status(200).json(orders);
     } catch (error) {
-        // Error handling doing retrieval
-        res.status(500).json({ error: "Failed to get orders by user ID" });
+        console.error('Error getting orders by user ID:', error);
+        res.status(500).json({ error: error.message });
     }
 }
 
-module.exports = { createOrder, getOrderByUserId, createOrderItems };
+// Export the necessary functions
+module.exports = { createOrder, getOrderByUserId };

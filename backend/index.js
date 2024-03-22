@@ -6,10 +6,7 @@ require('dotenv').config();
 // Import necessary modules
 const express = require('express');
 const authRoutes = require('./user-auth/routes/authRoutes');
-const orderRoutes = require('./order-management/routes/orderRoutes'); // Add this line
-
-// Import Supabase client (before authRoutes)
-const supabase = require('./user-auth/services/supabaseClient');
+const orderRoutes = require('./order-management/routes/orderRoutes');
 
 // Initialize the express application
 const app = express();
@@ -22,7 +19,8 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 
 // Register the order routes with the app
-app.use(orderRoutes); // Add this line
+// This will prefix all routes defined in `orderRoutes` with `/api`
+app.use('/order', orderRoutes);
 
 // Add a simple route for the root path
 app.get('/', (req, res) => {
