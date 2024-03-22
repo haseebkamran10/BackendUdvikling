@@ -24,10 +24,10 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 
 // Register the product routes with the app
-app.use('/products', productRoutes);
+app.use('/', productRoutes);
 
 // Register the category routes with the app
-app.use('/categories', categoryRoutes);
+app.use('/', categoryRoutes);
 
 // Add a simple route for the root path
 app.get('/', (req, res) => {

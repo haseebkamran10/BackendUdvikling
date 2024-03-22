@@ -4,7 +4,7 @@ class Products {
 
   // Get all products
   static async findAll() {
-    const { data, error } = await supabase.from('Products').select('*');
+    const { data, error } = await supabase .from('Products').select('*');
     if (error) throw error;
     return data;
   }
@@ -29,20 +29,20 @@ static async filterProducts(filters) {
     let query = supabase.from('Products').select('*');
 
     if (filters.category) {
-      query = query.eq('category_id', filters.category); // Access values from filters object
+      query = query.eq('category_id', filters.category); 
     }
 
     if (filters.minPrice) {
-      query = query.gte('price', filters.minPrice); // Access values from filters object
+      query = query.gte('price', filters.minPrice); 
     }
 
     if (filters.maxPrice) {
-      query = query.lte('price', filters.maxPrice); // Access values from filters object
+      query = query.lte('price', filters.maxPrice); 
     }
 
     const { data: products, error } = await query;
     if (error) {
-      throw new Error('Error fetching filtered products:', error); // Throw a descriptive error
+      throw new Error('Error fetching filtered products:', error); 
     }
 
     return products;
@@ -50,7 +50,7 @@ static async filterProducts(filters) {
     console.error('Error in filterProducts:', error);
     throw error; // Re-throw the error for handling in calling function
   }
-}
+ }
   
 
 }

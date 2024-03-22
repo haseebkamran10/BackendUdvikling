@@ -1,6 +1,7 @@
 
 const Products = require('../models/Products');
 
+
 exports.getProducts = async (req, res) => {
   try {
     // 1. Fetch all products initially
@@ -34,15 +35,10 @@ exports.getProductById = async (req, res) => {
 
 exports.getProductByName = async (req, res) => {
   try {
-    const productName = req.params.name; // Assuming product name is sent in params
+   const productName = req.params.name; // Assuming product name is sent in params
 
     // Fetch product by name from Supabase
     const product = await Products.findByName(productName)
-    if (error) {
-      console.error('Error fetching product:', error);
-      return res.status(500).json({ error: 'Failed to get product' });
-    }
-
     if (product) {
       res.status(200).json(product);
     } else {

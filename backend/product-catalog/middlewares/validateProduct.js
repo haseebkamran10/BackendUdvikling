@@ -1,4 +1,4 @@
-
+// will work on this in the future
 exports.validateProduct = (req, res, next) => {
     const { name, price, category } = req.body;
     if (!name || !price || !category) {
