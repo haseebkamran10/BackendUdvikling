@@ -4,7 +4,7 @@ class Products {
 
   // Get all products
   static async findAll() {
-    const { data, error } = await supabase .from('Products').select('*');
+    const { data, error } = await supabase.from('Products').select('*');
     if (error) throw error;
     return data;
   }
