@@ -11,6 +11,9 @@ router.post('/orders', orderController.createOrder);
 // Route to get orders by user id
 router.get('/orders/:user_id', orderController.getOrderByUserId);
 
+//route to get orderItems 
+router.post('/orderItems',orderController.createOrderItems)
+
 // Since you're not using the createPaymentIntent function, it's commented out
 // router.post('/create-payment-intent', orderController.createPaymentIntent);
 

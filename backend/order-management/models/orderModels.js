@@ -1,3 +1,5 @@
+const { supabase } = require('../services/supabaseClient');
+
 class Order {
     constructor(id, user_id, status, total_price, created_at) {
         this.id = id;
@@ -18,74 +20,74 @@ class OrderItem {
     }
 }
 
-// Function to create a new order
-const createOrder = async (user_id, status, total_price) => {
+async function createOrder(user_id, status, total_price) {
     try {
-        // Insert new order into supabase's "order" table
         const { data, error } = await supabase
-            .from('orders')
-            .insert([{ user_id, status, total_price }]);
+            .from('Orders')
+            .insert([{ user_id, status, total_price }])
+            .select();
+
         if (error) {
             throw error;
         }
-        // Extract the newly created order
+
         const newOrderData = data[0];
-        // Construct a new Order object with the retrieved data
-        return new Order(newOrderData.id, newOrderData.user_id, newOrderData.status, newOrderData.total_price, newOrderData.created_at);
+        return new Order(newOrderData.id, user_id, status, total_price, newOrderData.created_at);
     } catch (error) {
         throw new Error("Failed to create order");
     }
-};
+}
 
-// Get order data by user id 
-const getOrderByUserId = async (user_id) => {
+async function getOrdersByUserId(user_id) {
     try {
-        // Query the "orders" table to fetch orders for a specific user
         const { data, error } = await supabase
-            .from('orders')
+            .from('Orders')
             .select('*')
             .eq('user_id', user_id);
+
         if (error) {
             throw error;
         }
-        return data;
+
+        return data.map(order => new Order(order.id, order.user_id, order.status, order.total_price, order.created_at));
     } catch (error) {
         throw new Error("Failed to get orders by user ID");
     }
-};
+}
 
-const createOrderItem = async (order_id, product_id, quantity, price) => {
+async function createOrderItem(order_id, product_id, quantity, price) {
     try {
-        // Insert new order item into the "orderitem" table
         const { data, error } = await supabase
-            .from('orderitem')
-            .insert([{ order_id, product_id, quantity, price }]);
+            .from('OrderItems')
+            .insert([{ order_id, product_id, quantity, price }])
+            .select();
+
         if (error) {
             throw error;
         }
-        // Extract the newly created order item
+
         const newOrderItemData = data[0];
-        // Construct a new OrderItem object with the retrieved data
-        return new OrderItem(newOrderItemData.id, newOrderItemData.order_id, newOrderItemData.product_id, newOrderItemData.quantity, newOrderItemData.price);
+        return new OrderItem(newOrderItemData.id, order_id, product_id, quantity, price);
     } catch (error) {
         throw new Error("Failed to create order item");
     }
-};
+}
 
-const getOrderItemsByOrderId = async (order_id) => {
+async function getOrderItemsByOrderId(order_id) {
     try {
-        // Query the "orderitem" table to fetch order items for a specific order
         const { data, error } = await supabase
-            .from('orderitem')
+            .from('OrderItems')
             .select('*')
             .eq('order_id', order_id);
+
         if (error) {
             throw error;
         }
+
         return data.map(item => new OrderItem(item.id, item.order_id, item.product_id, item.quantity, item.price));
     } catch (error) {
         throw new Error("Failed to get order items by order ID");
     }
-};
+}
 
-module.exports = { Order, OrderItem, createOrder, getOrderByUserId, createOrderItem, getOrderItemsByOrderId };
+module.exports = { Order, OrderItem, createOrder, getOrdersByUserId, createOrderItem, getOrderItemsByOrderId };
