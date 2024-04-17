@@ -82,7 +82,7 @@ router.post('/signin', async (req, res) => {
     }
 
     // Login successful, send user and session data
-    return res.status(200).json({ user, session });
+    return res.status(200).json({message: 'Sign in successful', user, session });
   } catch (error) {
     // Catch unexpected errors
     console.error('Unexpected error:', error);
