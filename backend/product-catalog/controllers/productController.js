@@ -21,11 +21,14 @@ exports.createProduct = async (req, res) => {
 
 exports.getProducts = async (req, res) => {
   try {
-    // Fetch products directly from Supabase
+    // Explicitly select product IDs from 1 to 16 for demo purposes
+    const productIds = Array.from({ length: 16 }, (_, i) => i + 1); 
+
+    // Fetch only the specified products directly from Supabase with only specific fields
     const { data: products, error } = await supabase
       .from('Products')
-      .select('*');
-
+      .select('id, name, price, image_url') 
+      .in('id', productIds); 
     if (error) {
       console.error('Error fetching products:', error);
       return res.status(500).json({ error: 'Failed to get products' });
@@ -34,9 +37,11 @@ exports.getProducts = async (req, res) => {
     res.status(200).json(products);
   } catch (error) {
     console.error('Unexpected error fetching products:', error);
-    res.standart(500).json({ error: 'Internal server error' }); // typo corrected from 'standart' to 'status'
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+
 
 exports.getProductById = async (req, res) => {
   try {
