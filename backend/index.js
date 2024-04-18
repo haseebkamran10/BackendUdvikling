@@ -5,6 +5,7 @@ require('dotenv').config();
 
 // Import necessary modules
 const express = require('express');
+const cors = require('cors');
 const authRoutes = require('./user-auth/routes/authRoutes');
 const orderRoutes = require('./order-management/routes/orderRoutes');
 const productRoutes = require('./product-catalog/routes/productRoutes'); // Import product routes
@@ -14,6 +15,7 @@ const supabase = require('./user-auth/services/supabaseClient');
 
 // Initialize the express application
 const app = express();
+app.use(cors());
 
 // Use JSON parsing middleware to parse request bodies
 app.use(express.json());
