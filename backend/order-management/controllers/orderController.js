@@ -1,91 +1,113 @@
-// Make sure to require the Supabase client properly at the top of the file
 const supabase = require('../services/supabaseClient.js');
-const Order = require('../models/orderModels');
-// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Use environment variables for secrets
+// const Order = require('../models/orderModels'); // Uncomment if Order model is used
 
-// Function to create a new order
-async function createOrder(req, res) {
-    const { user_id, status, total_price } = req.body; // Assuming these are the body parameters
+// Helper function to calculate total order amount
+function calculateOrderAmount(items) {
+    return items.reduce((total, item) => total + item.quantity * item.price, 0);
+  }
+  
+  async function createOrder(req, res) {
+    const { user_id, status, items } = req.body; // Expect items to be an array of { product_id, quantity }
+  
     try {
-        const { data, error } = await supabase
-    .from('Orders')
-    .insert([{ user_id, status, total_price }])
-    .select();
-
-        // Log the response data from Supabase for debugging
-        console.log('Insert response data:', data);
-
-        // Error handling for any issues with the insert operation
-        if (error) {
-            console.error('Insert error:', error);
-            throw new Error(error.message);
+      console.log('Request received with user_id:', user_id); // Log received user ID
+      console.log('Request items:', items); // Log received order items
+  
+      // Retrieve product details for each item to get the latest prices
+      const prices = await Promise.all(
+        items.map(item =>
+          supabase
+            .from('Products')
+            .select('price')
+            .eq('id', item.product_id)
+            .single()
+        )
+      );
+  
+      console.log('Retrieved prices:', prices); // Debug log for product details
+  
+      // Calculate total price using prices from the database
+      const total_price = prices.reduce((sum, { data }, index) => {
+        if (!data) {
+          console.error(`Product with ID ${items[index].product_id} not found`); // Log specific error for missing product
+          throw new Error(`Product with ID ${items[index].product_id} not found`);
         }
+        return sum + (data.price * items[index].quantity);
+      }, 0);
+  
+      // Insert the new order with the calculated total price
+      const { data: order, error: orderError } = await supabase
+  .from('Orders')
+  .insert([{ user_id, status, total_price }])
+  .single();
 
-        // Check if data is not null and has at least one item
-        if (data && data.length > 0) {
-            // Assuming that your Order class constructor takes these parameters in this order
-            // and that it doesn't perform any additional logic that might throw an error
-            const newOrder = new Order(data[0].id, user_id, status, total_price, data[0].created_at);
-            res.status(201).json(newOrder);
-        } else {
-            // Handle the case where data is null or empty
-            throw new Error('No data returned from insert operation');
-        }
-    } catch (error) {
-        // Log the error for debugging purposes
-        console.error('Creation failed:', error);
-        // If creation failed, sends this error
-        res.status(500).json({ error: error.message });
-    }
+if (orderError) throw new Error(orderError.message);
+
+console.log('Created Order:', order); // Added log to inspect order object
+
+// Check if order insertion was successful (order might be null if insertion fails)
+if (!order) {
+  throw new Error('Failed to create order (order insertion might have failed)');
 }
-
-
-
-const getOrderByUserId = async (req, res) => {
-    try {
-        const { user_id } = req.params;
-        //Static method from Order to fetch orders by user_id
-        const orders = await Order.getOrderByUserId(user_id);
-        //Sending fetched orders as a json response
-        res.status(200).json(orders); 
+  
+      console.log('Order created:', order); // Log the created order object for debugging
+  
+      // Prepare order items for insertion with logs
+      const orderItemsPromises = items.map((item, index) => {
+        console.log('Order Item Object for Product:', item.product_id); // Existing log
+        console.log('Price for Product:', prices[index].data.price); // Existing log
+  
+        console.log('Inserting order item:', {
+          order_id: order.id,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          price: prices[index].data.price,
+        }); // Log specific order item data being inserted
+  
+        return supabase
+          .from('OrderItems')
+          .insert({
+            order_id: order.id,
+            product_id: item.product_id,
+            quantity: item.quantity,
+            price: prices[index].data.price,
+          });
+      });
+  
+      const orderItemsResults = await Promise.all(orderItemsPromises);
+  
+      // Check for errors in all insertions before processing further
+      const hasErrors = orderItemsResults.some(result => result.error);
+      if (hasErrors) {
+        console.log('Order Item insertion errors:', orderItemsResults); // Existing log
+        throw new Error('Failed to insert some order items');
+      }
+  
+      const orderItems = orderItemsResults.map(result => result.data[0]);
+  
+      console.log('Order Item results:', orderItems); // Existing log
+  
+      // Return the order with items
+      res.status(201).json({ order, items: orderItems });
     } catch (error) {
-        // Error handling doing retrieval
-        res.status(500).json({ error: "Failed to get orders by user ID" });
+      console.error('Order creation failed:', error);
+      res.status(500).json({ error: error.message });
     }
+  }
+  
+// Get orders by user ID
+const getOrderByUserId = async (req, res) => {
+  const { user_id } = req.params;
+  try {
+    // Here you would add logic to retrieve orders by user_id from the database
+    // For this example, let's just log the user_id and send a placeholder response
+    console.log(`Retrieving orders for user_id: ${user_id}`);
+    // Placeholder response, replace with actual data retrieval logic
+    res.status(200).json({ message: `Orders for user_id ${user_id} retrieved successfully.` });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to get orders by user ID" });
+  }
 };
 
-
-
-/* const stripe = require('stripe')(stripe_secred_test_key);
-
-//function to create a payment intent
-const createPaymentIntent = async (req, res) => {
-    const {items, currency} = req.body
-    try {
-        //create payment intent with stripe
-        const paymentIntent = await stripe.paymentIntent.create ({
-            amount: amount,
-            currency: currency
-        });
-        //send the client secret back to the client (secret = unique token generated by stripe)
-        res.status(200).json({clientSecret: paymentIntent.client_secret});
-    } catch (error) {
-        console.error('error creating payment intent:', error);
-        res.status(500).json({error: 'unable to create payment intent'});
-    }
-};*/
-
-function calculateOrderAmount(items) {
-    // Sum up the total based on item prices. Replace this logic with your own.
-    return items.reduce((total, item) => {
-        return total + item.price;
-    }, 0);
-}
-
-module.exports = { createOrder, getOrderByUserId/*, createPaymentIntent */};
-
-module.exports = { createOrder, getOrderByUserId/*, createPaymentIntent*/ };
-
-
-
-
+// Export the controller functions
+module.exports = { createOrder, getOrderByUserId };
