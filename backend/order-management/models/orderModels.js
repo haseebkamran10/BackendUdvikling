@@ -45,7 +45,7 @@ const createdOrder = async (user_id, status, total_price) => {
     try {
         // Insert new order into supabase's "order" table
         const {data, error} = await supabase
-            .from('orders')
+            .from('Orders')
             .insert([{user_id,status,total_price}]);
         if (error) {
             throw error;
@@ -62,7 +62,7 @@ const createdOrder = async (user_id, status, total_price) => {
 const getOrderByUserId = async (user_id) => {
     //Query the "orders" table to fetch orders for a specific user
     const {data,error} = await supabase
-        .from('orders')
+        .from('Orders')
         .select('*')
         .eq('user_id',user_id);
     if (error) {

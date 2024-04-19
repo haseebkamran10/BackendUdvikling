@@ -46,7 +46,7 @@ const getOrderByUserId = async (req, res) => {
         //Static method from Order to fetch orders by user_id
         const orders = await Order.getOrderByUserId(user_id);
         //Sending fetched orders as a json response
-        res.status(200).json(orders); 
+        res.status(200).json(Orders); 
     } catch (error) {
         // Error handling doing retrieval
         res.status(500).json({ error: "Failed to get orders by user ID" });
@@ -88,9 +88,9 @@ function calculateOrderAmount(items) {
     }, 0);
 }
 
-module.exports = { createOrder, getOrderByUserId/*, createPaymentIntent */};
+module.exports = { createOrder, getOrderByUserId, addOrderItems/*, createPaymentIntent */};
 
-module.exports = { createOrder, getOrderByUserId/*, createPaymentIntent*/ };
+module.exports = { createOrder, getOrderByUserId, addOrderItems/*, createPaymentIntent*/ };
 
 
 
