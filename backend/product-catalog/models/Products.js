@@ -59,8 +59,20 @@ class Products {
     if (error) throw error;
     return data;
   }
-  
+
+/*static async searchByName(name) {
+  let query = supabase
+    .from('Products')
+    .select('*')
+    .ilike('name', `%${name}%`);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data;
+}*/
+
 
 }
+
 
 module.exports = Products;

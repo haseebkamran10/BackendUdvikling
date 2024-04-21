@@ -125,3 +125,29 @@ exports.deleteProduct = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+exports.searchProductsByName = async (req, res) => {
+  try {
+    const { name } = req.query;
+    if (!name) {
+      return res.status(400).json({ error: 'No name provided for search' });
+    }
+    const { data: products, error } = await supabase
+      .from('Products')
+      .select('id, name, price, image_url')
+      .ilike('name', `%${name}%`);
+    if (error) {
+      console.error('Error searching for products:', error);
+      return res.status(500).json({ error: 'Failed to search for products' });
+    }
+    if (products.length === 0) {
+      return res.status(404).json({ message: 'No products found matching the search criteria' });
+    }
+
+    
+    res.status(200).json(products);
+  } catch (error) {
+    console.error('Unexpected error during product search:', error);
+    res.status(500).json({ error: 'Internal server error during product search' });
+  }
+};
+
