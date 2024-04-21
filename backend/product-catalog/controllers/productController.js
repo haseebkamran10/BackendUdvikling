@@ -126,6 +126,7 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 exports.searchProductsByName = async (req, res) => {
+  const productIds = Array.from({ length: 16 }, (_, i) => i + 1);
   try {
     const { name } = req.query;
     if (!name) {
@@ -134,7 +135,8 @@ exports.searchProductsByName = async (req, res) => {
     const { data: products, error } = await supabase
       .from('Products')
       .select('id, name, price, image_url')
-      .ilike('name', `%${name}%`);
+      .ilike('name', `%${name}%`)
+      .in('id', productIds);
     if (error) {
       console.error('Error searching for products:', error);
       return res.status(500).json({ error: 'Failed to search for products' });
