@@ -1,5 +1,6 @@
 const supabase = require('../services/supabaseClient.js');
 
+
 exports.createProduct = async (req, res) => {
   try {
     // Create product in Supabase directly
@@ -68,6 +69,7 @@ exports.getProductById = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
 
 exports.updateProduct = async (req, res) => {
   try {
