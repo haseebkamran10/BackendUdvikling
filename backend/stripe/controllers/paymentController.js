@@ -1,5 +1,6 @@
 const paymentService = require('../services/paymentService');  
-// Handler for creating payment intent
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 const createPaymentIntentHandler = async (req, res) => {
   const { amount, currency, userId } = req.body;
   if (!amount || !currency || !userId) {
@@ -14,7 +15,6 @@ const createPaymentIntentHandler = async (req, res) => {
   }
 };
 
-// Handler for recording payment details
 const recordPaymentDetailsHandler = async (req, res) => {
   const { orderId, userId, paymentIntentId, status, amount, currency, method } = req.body;
 
@@ -45,9 +45,25 @@ const attachPaymentMethodHandler = async (req, res) => {
       res.status(500).json({ error: error.message });
     }
   };
+  const stripeWebhookHandler = async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+  
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+      await handleStripeWebhook(event);
+      res.status(200).json({ received: true });
+    } catch (err) {
+      res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+  };
+  
+
+
 
 module.exports = {
   createPaymentIntentHandler,
   recordPaymentDetailsHandler,
-  attachPaymentMethodHandler
+  attachPaymentMethodHandler,
+  stripeWebhookHandler
 };

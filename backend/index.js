@@ -1,23 +1,19 @@
-// index.js
 
-// Load environment variables from .env file
 require('dotenv').config();
 
-// Import necessary modules
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./user-auth/routes/authRoutes');
 const orderRoutes = require('./order-management/routes/orderRoutes');
-const productRoutes = require('./product-catalog/routes/productRoutes'); // Import product routes
+const productRoutes = require('./product-catalog/routes/productRoutes'); 
 const stripeRoutes = require('./stripe/routes/stripeRoutes');
-// Import Supabase client (if needed here)
 const supabase = require('./user-auth/services/supabaseClient');
+const webhookRoutes = require('./stripe/routes/webHookRoutes');
 
-// Initialize the express application
+
 const app = express();
 app.use(cors());
 
-// Use JSON parsing middleware to parse request bodies
 app.use(express.json());
 
 console.log('Registering /auth routes');
@@ -32,17 +28,20 @@ app.use('/', productRoutes);
 console.log('Registering Stripe Payment');
 app.use('/', stripeRoutes);
 
-// Add a simple route for the root path
+console.log('Registering Stripe Webhook');
+app.use('/', webhookRoutes);
+
+
 app.get('/', (req, res) => {
   res.send('Welcome to the DTU Cricket Web App Backend!');
 });
 
-// Define a 404 handler
+
 app.use((req, res) => {
   res.status(404).send('Page not found');
 });
 
-// Start the server to listen on a given port
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

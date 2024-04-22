@@ -44,11 +44,9 @@ const recordPaymentDetails = async ({ orderId, userId, paymentIntentId, status, 
 
 const attachPaymentMethod = async (paymentIntentId, paymentMethodId) => {
     try {
-      // Attach the payment method to the payment intent
       await stripe.paymentIntents.update(paymentIntentId, {
         payment_method: paymentMethodId,
       });
-      // Confirm the payment intent after attaching the payment method
       const confirmedPaymentIntent = await stripe.paymentIntents.confirm(paymentIntentId);
       return confirmedPaymentIntent;
     } catch (error) {
@@ -57,8 +55,28 @@ const attachPaymentMethod = async (paymentIntentId, paymentMethodId) => {
     }
   };
 
+const handlePaymentIntentSucceeded = async (paymentIntent) => {
+  try {
+    console.log(`Handling succeeded payment for intent ${paymentIntent.id}`);
+    await updateOrderStatus(paymentIntent.metadata.orderId, 'paid');
+    console.log(`Order status updated successfully for payment intent ${paymentIntent.id}`);
+  } catch (error) {
+    console.error(`Failed to handle succeeded payment intent ${paymentIntent.id}: ${error.message}`);
+    throw error;  
+  }
+
+const handlePaymentIntentFailed = async (paymentIntent) => {
+  console.error('Payment Intent Failed:', paymentIntent);
+  // error handling logic 
+};
+
+
+
+
 module.exports = {
   createPaymentIntent,
   recordPaymentDetails,
-  attachPaymentMethod
+  attachPaymentMethod,
+  handlePaymentIntentSucceeded,
+  handlePaymentIntentFailed
 };
