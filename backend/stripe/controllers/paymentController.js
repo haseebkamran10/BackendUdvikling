@@ -1,6 +1,4 @@
-// paymentController.js
-const paymentService = require('../services/paymentService');  // Ensure this path matches your file structure
-
+const paymentService = require('../services/paymentService');  
 // Handler for creating payment intent
 const createPaymentIntentHandler = async (req, res) => {
   const { amount, currency, userId } = req.body;
@@ -33,8 +31,23 @@ const recordPaymentDetailsHandler = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+const attachPaymentMethodHandler = async (req, res) => {
+    const { paymentIntentId, paymentMethodId } = req.body;
+  
+    if (!paymentIntentId || !paymentMethodId) {
+      return res.status(400).json({ error: "paymentIntentId and paymentMethodId are required." });
+    }
+  
+    try {
+      const confirmedPaymentIntent = await paymentService.attachPaymentMethod(paymentIntentId, paymentMethodId);
+      res.status(200).json(confirmedPaymentIntent);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
 
 module.exports = {
   createPaymentIntentHandler,
-  recordPaymentDetailsHandler
+  recordPaymentDetailsHandler,
+  attachPaymentMethodHandler
 };

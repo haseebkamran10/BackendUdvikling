@@ -1,4 +1,3 @@
-// paymentService.js
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const supabase = require('./supabaseClient'); 
 
@@ -8,7 +7,7 @@ const createPaymentIntent = async (amount, currency, userId) => {
         amount: amount * 100,  
         currency: currency,
         metadata: { userId: userId.toString() },
-        payment_method_types: ['card', 'klarna', 'viabill', 'mobilePay', 'invoice'], 
+        payment_method_types: ['card', 'klarna', 'mobilepay'], 
       });
       return paymentIntent;
     } catch (error) {
@@ -28,7 +27,7 @@ const recordPaymentDetails = async ({ orderId, userId, paymentIntentId, status, 
       amount,
       currency,
       method,
-      created_at: new Date().toISOString(), // Optional: manage timestamp on the server side
+      created_at: new Date().toISOString(), 
       updated_at: new Date().toISOString()
     }]);
     
@@ -43,7 +42,23 @@ const recordPaymentDetails = async ({ orderId, userId, paymentIntentId, status, 
   }
 };
 
+const attachPaymentMethod = async (paymentIntentId, paymentMethodId) => {
+    try {
+      // Attach the payment method to the payment intent
+      await stripe.paymentIntents.update(paymentIntentId, {
+        payment_method: paymentMethodId,
+      });
+      // Confirm the payment intent after attaching the payment method
+      const confirmedPaymentIntent = await stripe.paymentIntents.confirm(paymentIntentId);
+      return confirmedPaymentIntent;
+    } catch (error) {
+      console.error('Error attaching payment method:', error);
+      throw error;
+    }
+  };
+
 module.exports = {
   createPaymentIntent,
-  recordPaymentDetails
+  recordPaymentDetails,
+  attachPaymentMethod
 };
