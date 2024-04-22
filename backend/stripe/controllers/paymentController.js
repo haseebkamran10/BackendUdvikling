@@ -58,9 +58,7 @@ const attachPaymentMethodHandler = async (req, res) => {
     }
   };
   
-
-
-
+  
 module.exports = {
   createPaymentIntentHandler,
   recordPaymentDetailsHandler,
