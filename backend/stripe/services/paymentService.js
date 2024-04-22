@@ -56,22 +56,14 @@ const attachPaymentMethod = async (paymentIntentId, paymentMethodId) => {
   };
 
 const handlePaymentIntentSucceeded = async (paymentIntent) => {
-  try {
-    console.log(`Handling succeeded payment for intent ${paymentIntent.id}`);
-    await updateOrderStatus(paymentIntent.metadata.orderId, 'paid');
-    console.log(`Order status updated successfully for payment intent ${paymentIntent.id}`);
-  } catch (error) {
-    console.error(`Failed to handle succeeded payment intent ${paymentIntent.id}: ${error.message}`);
-    throw error;  
-  }
+  console.log('Payment Intent Succeeded:', paymentIntent);
+  // business logic (to register in our datanbase (Supabase))
+};
 
 const handlePaymentIntentFailed = async (paymentIntent) => {
   console.error('Payment Intent Failed:', paymentIntent);
   // error handling logic 
 };
-
-
-
 
 module.exports = {
   createPaymentIntent,
