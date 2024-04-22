@@ -9,7 +9,7 @@ const cors = require('cors');
 const authRoutes = require('./user-auth/routes/authRoutes');
 const orderRoutes = require('./order-management/routes/orderRoutes');
 const productRoutes = require('./product-catalog/routes/productRoutes'); // Import product routes
-
+const stripeRoutes = require('./stripe/routes/stripeRoutes');
 // Import Supabase client (if needed here)
 const supabase = require('./user-auth/services/supabaseClient');
 
@@ -29,6 +29,8 @@ app.use('/orders', orderRoutes);
 console.log('Registering /products routes');
 app.use('/', productRoutes);
 
+console.log('Registering Stripe Payment');
+app.use('/', stripeRoutes);
 
 // Add a simple route for the root path
 app.get('/', (req, res) => {
