@@ -9,7 +9,7 @@ console.log(orderController);
 router.post('/orders', orderController.createOrder);
 
 // Route to get orders by user id
-router.get('/orders/:user_id', orderController.getOrderByUserId);
+// router.get('/orders/:user_id', orderController.getOrderByUserId);
 
 // Since you're not using the createPaymentIntent function, it's commented out
 // router.post('/create-payment-intent', orderController.createPaymentIntent);
