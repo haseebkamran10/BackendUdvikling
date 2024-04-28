@@ -1,5 +1,6 @@
 const supabase = require('../services/supabaseClient.js');
 
+
 exports.createProduct = async (req, res) => {
   try {
     // Create product in Supabase directly
@@ -21,11 +22,14 @@ exports.createProduct = async (req, res) => {
 
 exports.getProducts = async (req, res) => {
   try {
-    // Fetch products directly from Supabase
+    // Explicitly select product IDs from 1 to 16 for demo purposes
+    const productIds = Array.from({ length: 16 }, (_, i) => i + 1); 
+
+    // Fetch only the specified products directly from Supabase with only specific fields
     const { data: products, error } = await supabase
       .from('Products')
-      .select('*');
-
+      .select('id, name, price, image_url') 
+      .in('id', productIds); 
     if (error) {
       console.error('Error fetching products:', error);
       return res.status(500).json({ error: 'Failed to get products' });
@@ -34,9 +38,11 @@ exports.getProducts = async (req, res) => {
     res.status(200).json(products);
   } catch (error) {
     console.error('Unexpected error fetching products:', error);
-    res.standart(500).json({ error: 'Internal server error' }); // typo corrected from 'standart' to 'status'
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+
 
 exports.getProductById = async (req, res) => {
   try {
@@ -63,6 +69,7 @@ exports.getProductById = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
 
 exports.updateProduct = async (req, res) => {
   try {
@@ -118,3 +125,31 @@ exports.deleteProduct = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+exports.searchProductsByName = async (req, res) => {
+  const productIds = Array.from({ length: 16 }, (_, i) => i + 1);
+  try {
+    const { name } = req.query;
+    if (!name) {
+      return res.status(400).json({ error: 'No name provided for search' });
+    }
+    const { data: products, error } = await supabase
+      .from('Products')
+      .select('id, name, price, image_url')
+      .ilike('name', `%${name}%`)
+      .in('id', productIds);
+    if (error) {
+      console.error('Error searching for products:', error);
+      return res.status(500).json({ error: 'Failed to search for products' });
+    }
+    if (products.length === 0) {
+      return res.status(404).json({ message: 'No products found matching the search criteria' });
+    }
+
+    
+    res.status(200).json(products);
+  } catch (error) {
+    console.error('Unexpected error during product search:', error);
+    res.status(500).json({ error: 'Internal server error during product search' });
+  }
+};
+
