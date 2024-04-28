@@ -42,4 +42,3 @@ const getOrderByUserId = async (user_id) => {
 }
 
 module.exports = orders;
-
