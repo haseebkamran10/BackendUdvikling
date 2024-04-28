@@ -32,19 +32,27 @@ const recordPaymentDetailsHandler = async (req, res) => {
   }
 };
 const attachPaymentMethodHandler = async (req, res) => {
-    const { paymentIntentId, paymentMethodId } = req.body;
-  
-    if (!paymentIntentId || !paymentMethodId) {
-      return res.status(400).json({ error: "paymentIntentId and paymentMethodId are required." });
-    }
-  
-    try {
-      const confirmedPaymentIntent = await paymentService.attachPaymentMethod(paymentIntentId, paymentMethodId);
-      res.status(200).json(confirmedPaymentIntent);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  };
+  const { paymentIntentId, paymentMethodId } = req.body;
+
+  if (!paymentIntentId || !paymentMethodId) {
+    return res.status(400).json({ error: "paymentIntentId and paymentMethodId are required." });
+  }
+
+  try {
+    // Attach the payment method to the payment intent
+    await stripe.paymentIntents.update(paymentIntentId, {
+      payment_method: paymentMethodId,
+    });
+
+    // Confirm the payment intent to complete the payment
+    const confirmedPaymentIntent = await stripe.paymentIntents.confirm(paymentIntentId);
+
+    // Respond with the confirmed payment intent details
+    res.status(200).json(confirmedPaymentIntent);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
   const stripeWebhookHandler = async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;

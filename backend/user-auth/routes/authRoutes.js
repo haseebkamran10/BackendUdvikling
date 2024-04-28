@@ -9,34 +9,44 @@ router.use(cors());
 
 router.post('/signup', async (req, res) => {
   const { email, password, firstName, lastName, phoneNumber } = req.body;
-  const { user, error: authError } = await supabase.auth.signUp({ email, password });
 
-  if (authError) {
-    return res.status(400).json({ error: authError.message });
-  }
+  try {
+    // Attempt Supabase signup
+    const { user, error: authError } = await supabase.auth.signUp({ email, password });
 
-  if (user) {
-    const { data, error: insertError } = await supabase.from('Users').insert([
-      {
-        id: user.id,
-        email,
-        firstName,
-        lastName,
-        address: '',
-        phoneNumber,
-      },
-    ]);
-
-    if (insertError) {
-      await supabase.auth.api.deleteUser(user.id);
-      return res.status(400).json({ error: insertError.message });
+    if (authError) {
+      return res.status(400).json({ error: authError.message });
     }
 
-    return res.status(201).json({ message: 'Signup successful', user });
-  } else {
-    return res.status(500).json({ error: 'An unexpected error occurred during signup' });
+    if (user) {
+      // Insert user data only if signup is successful
+      const { data, error: insertError } = await supabase.from('Users').insert([
+        {
+          id: user.id,
+          email,
+          firstName,
+          lastName,
+          address: '',
+          phoneNumber,
+        },
+      ]);
+
+      if (insertError) {
+        // Cleanup user if data insertion fails
+        await supabase.auth.api.deleteUser(user.id);
+        return res.status(400).json({ error: insertError.message });
+      }
+
+      // User creation successful, send response
+      return res.status(201).json({ message: 'Signup successful', user });
+    }
+  } catch (error) {
+    // Handle any unexpected errors during signup process
+    console.error('Error during signup:', error);
+    return res.status(500).json({ error: 'An unexpected error occurred' });
   }
 });
+
 
 router.post('/signin', async (req, res) => {
   const { email, password } = req.body;
