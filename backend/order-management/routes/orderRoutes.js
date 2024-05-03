@@ -6,7 +6,7 @@ const orderController = require('../controllers/orderController');
 console.log(orderController);
 
 // Route to create new orders
-router.post('/orders', orderController.createOrder);
+router.post('/create-order', orderController.createOrder);
 
 // Route to get orders by user id
 // router.get('/orders/:user_id', orderController.getOrderByUserId);
